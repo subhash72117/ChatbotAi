@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Interface</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .chat-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        #chat-output {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        #user-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .user-message {
+            background-color: #e6f7ff;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .ai-response {
+            background-color: #f0f0f0;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <h1>AI Chat</h1>
+    <div id="chat-output"></div>
+    <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off">
+    <button id="send-button">Send</button>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatOutput = document.getElementById('chat-output');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        function sendMessage() {
+            const prompt = userInput.value.trim();
+            if (prompt === '') return;
+
+            // Display user message
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'user-message';
+            userMessageDiv.textContent = `You: ${prompt}`;
+            chatOutput.appendChild(userMessageDiv);
+
+            // Clear input
+            userInput.value = '';
+
+            // Call the backend API
+            fetch(`/ask-ai?prompt=${encodeURIComponent(prompt)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.text();
+                })
+                .then(responseText => {
+                    // Display AI response
+                    const aiResponseDiv = document.createElement('div');
+                    aiResponseDiv.className = 'ai-response';
+                    aiResponseDiv.textContent = `AI: ${responseText}`;
+                    chatOutput.appendChild(aiResponseDiv);
+
+                    // Scroll to bottom
+                    chatOutput.scrollTop = chatOutput.scrollHeight;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'ai-response';
+                    errorDiv.textContent = `Error: ${error.message}`;
+                    chatOutput.appendChild(errorDiv);
+                });
+        }
+
+        // Send message on button click
+        sendButton.addEventListener('click', sendMessage);
+
+        // Send message on Enter key
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    });
+</script>
+</body>
+</html>
